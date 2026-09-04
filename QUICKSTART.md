@@ -18,10 +18,10 @@ Backend runs on: **http://localhost:5000**
 ```bash
 npm run client
 ```
-Frontend runs on: **http://localhost:3000**
+Frontend runs on: **http://localhost:3001**
 
 ### 4. Login
-Open http://localhost:3000 in your browser
+Open http://localhost:3001 in your browser
 - **Admin User:** username: `admin`, password: `admin123`
 - **Create a new user** account or use admin credentials
 
@@ -77,7 +77,7 @@ GunungClimber/
 1. Run `npm run setup` to install everything
 2. Start the backend with `npm run dev`
 3. Start the frontend with `npm run client`
-4. Visit http://localhost:3000
+4. Visit http://localhost:3001
 5. Login and start planning hikes!
 
 ## 🆘 Troubleshooting
