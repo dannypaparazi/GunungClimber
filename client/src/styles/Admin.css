@@ -1,0 +1,127 @@
+.admin-container {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.admin-header {
+  background-color: #333;
+  color: white;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.admin-header h1 {
+  margin-bottom: 10px;
+}
+
+.admin-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.users-section {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #eee;
+}
+
+.section-header h2 {
+  margin: 0;
+}
+
+.create-user-form {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-group input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+.users-table thead {
+  background-color: #f5f5f5;
+}
+
+.users-table th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 2px solid #ddd;
+}
+
+.users-table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.users-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+.btn-danger {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: #da190b;
+}
+
+.btn-danger:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.btn-logout {
+  background-color: #f44336;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}

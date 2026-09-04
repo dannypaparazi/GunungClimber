@@ -1,0 +1,145 @@
+.dashboard-container {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.dashboard-header {
+  background: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%);
+  color: white;
+  padding: 30px 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+}
+
+.dashboard-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.section {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #eee;
+}
+
+.section-header h2 {
+  margin: 0;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+}
+
+.itineraries-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.itinerary-card {
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.itinerary-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.itinerary-card h3 {
+  margin: 0 0 10px 0;
+  color: #4CAF50;
+}
+
+.mountain-name {
+  color: #2196F3;
+  font-weight: 600;
+  margin-bottom: 15px;
+  font-size: 16px;
+}
+
+.itinerary-details {
+  margin: 15px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.itinerary-details p {
+  margin: 8px 0;
+}
+
+.card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.card-actions a,
+.card-actions button {
+  flex: 1;
+  padding: 8px 12px;
+  text-align: center;
+  text-decoration: none;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-secondary {
+  background-color: #2196F3;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #0b7dda;
+}
+
+.btn-danger {
+  background-color: #f44336;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #da190b;
+}
+
+.btn-logout {
+  background-color: #f44336;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}

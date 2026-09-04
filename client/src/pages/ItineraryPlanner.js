@@ -1,0 +1,241 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useParams, useNavigate } from 'react-router-dom';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
+import '../styles/ItineraryPlanner.css';
+
+function ItineraryPlanner({ onLogout }) {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const token = localStorage.getItem('token');
+  const [formData, setFormData] = useState({
+    title: '',
+    mountain_name: '',
+    start_date: '',
+    end_date: '',
+    difficulty: 'moderate',
+    description: '',
+    public_transport_method: '',
+    meeting_point: '',
+  });
+  const [itineraryDetails, setItineraryDetails] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const malaysianMountains = [
+    'Gunung Kinabalu',
+    'Gunung Tahan',
+    'Gunung Ledang',
+    'Gunung Semporna',
+    'Gunung Irau',
+    'Gunung Jerai',
+    'Gunung Rajah',
+  ];
+
+  const publicTransportOptions = [
+    'Bus',
+    'Train',
+    'Taxi/Grab',
+    'Combined (Bus + Train)',
+    'Self Drive',
+  ];
+
+  useEffect(() => {
+    if (id) {
+      fetchItinerary();
+    }
+  }, [id]);
+
+  const fetchItinerary = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`http://localhost:5000/api/itinerary/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setFormData(response.data.itinerary);
+      setItineraryDetails(response.data.details);
+    } catch (err) {
+      setError('Failed to load itinerary');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    try {
+      if (id) {
+        await axios.put(`http://localhost:5000/api/itinerary/${id}`, formData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } else {
+        await axios.post('http://localhost:5000/api/itinerary', formData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to save itinerary');
+    }
+  };
+
+  return (
+    <div className="planner-container">
+      <header className="planner-header">
+        <h1>{id ? 'Edit Itinerary' : 'Plan Your Hike'}</h1>
+        <button onClick={() => { onLogout(); navigate('/login'); }} className="btn-logout">
+          Logout
+        </button>
+      </header>
+
+      <div className="planner-content">
+        {error && <div className="error-message">{error}</div>}
+
+        <form onSubmit={handleSubmit} className="itinerary-form">
+          <div className="form-section">
+            <h3>Basic Information</h3>
+
+            <div className="form-group">
+              <label htmlFor="title">Itinerary Title</label>
+              <input
+                id="title"
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleInputChange}
+                placeholder="e.g., Kinabalu Challenge 2024"
+                required
+              />
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="mountain_name">Mountain</label>
+                <select
+                  id="mountain_name"
+                  name="mountain_name"
+                  value={formData.mountain_name}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="">Select a mountain</option>
+                  {malaysianMountains.map((mountain) => (
+                    <option key={mountain} value={mountain}>
+                      {mountain}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="difficulty">Difficulty Level</label>
+                <select
+                  id="difficulty"
+                  name="difficulty"
+                  value={formData.difficulty}
+                  onChange={handleInputChange}
+                >
+                  <option value="easy">Easy</option>
+                  <option value="moderate">Moderate</option>
+                  <option value="hard">Hard</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="start_date">Start Date</label>
+                <input
+                  id="start_date"
+                  type="date"
+                  name="start_date"
+                  value={formData.start_date}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="end_date">End Date</label>
+                <input
+                  id="end_date"
+                  type="date"
+                  name="end_date"
+                  value={formData.end_date}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="form-section">
+            <h3>Transportation & Location</h3>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="public_transport_method">Transport Method</label>
+                <select
+                  id="public_transport_method"
+                  name="public_transport_method"
+                  value={formData.public_transport_method}
+                  onChange={handleInputChange}
+                >
+                  <option value="">Select method</option>
+                  {publicTransportOptions.map((method) => (
+                    <option key={method} value={method}>
+                      {method}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="meeting_point">Meeting Point</label>
+                <input
+                  id="meeting_point"
+                  type="text"
+                  name="meeting_point"
+                  value={formData.meeting_point}
+                  onChange={handleInputChange}
+                  placeholder="e.g., KL Sentral Station"
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="description">Description & Notes</label>
+              <textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                placeholder="Add any additional details about your hiking plan..."
+                rows="4"
+              />
+            </div>
+          </div>
+
+          <div className="form-actions">
+            <button type="submit" className="btn-primary">
+              {id ? 'Update Itinerary' : 'Create Itinerary'}
+            </button>
+            <button type="button" onClick={() => navigate('/dashboard')} className="btn-secondary">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default ItineraryPlanner;
