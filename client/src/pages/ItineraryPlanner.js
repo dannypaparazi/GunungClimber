@@ -50,7 +50,7 @@ function ItineraryPlanner({ onLogout }) {
   const fetchItinerary = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:5000/api/itinerary/${id}`, {
+      const response = await axios.get(`http://localhost:5001/api/itinerary/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setFormData(response.data.itinerary);
@@ -73,11 +73,11 @@ function ItineraryPlanner({ onLogout }) {
 
     try {
       if (id) {
-        await axios.put(`http://localhost:5000/api/itinerary/${id}`, formData, {
+        await axios.put(`http://localhost:5001/api/itinerary/${id}`, formData, {
           headers: { Authorization: `Bearer ${token}` },
         });
       } else {
-        await axios.post('http://localhost:5000/api/itinerary', formData, {
+        await axios.post('http://localhost:5001/api/itinerary', formData, {
           headers: { Authorization: `Bearer ${token}` },
         });
       }

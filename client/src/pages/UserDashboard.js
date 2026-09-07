@@ -17,7 +17,7 @@ function UserDashboard({ onLogout }) {
 
   const fetchUserProfile = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/user/profile', {
+      const response = await axios.get('http://localhost:5001/api/user/profile', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUserInfo(response.data.user);
@@ -29,7 +29,7 @@ function UserDashboard({ onLogout }) {
   const fetchItineraries = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5000/api/itinerary', {
+      const response = await axios.get('http://localhost:5001/api/itinerary', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setItineraries(response.data.itineraries);
@@ -43,7 +43,7 @@ function UserDashboard({ onLogout }) {
   const handleDeleteItinerary = async (id) => {
     if (window.confirm('Are you sure you want to delete this itinerary?')) {
       try {
-        await axios.delete(`http://localhost:5000/api/itinerary/${id}`, {
+        await axios.delete(`http://localhost:5001/api/itinerary/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         fetchItineraries();

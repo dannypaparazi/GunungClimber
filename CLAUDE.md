@@ -35,7 +35,7 @@ npm run client
 
 Access:
 - Frontend: http://localhost:3001
-- Backend: http://localhost:5000
+- Backend: http://localhost:5001
 - Default Admin: username: `admin`, password: `admin123`
 
 ## API Endpoints

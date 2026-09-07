@@ -12,7 +12,7 @@ npm run setup
 ```bash
 npm run dev
 ```
-Backend runs on: **http://localhost:5000**
+Backend runs on: **http://localhost:5001**
 
 ### 3. Start Frontend (in another terminal)
 ```bash
@@ -61,8 +61,8 @@ Open http://localhost:3001 in your browser
 ## 📁 Project Structure
 ```
 GunungClimber/
-├── server/           ← Express backend (port 5000)
-├── client/          ← React frontend (port 3000)
+├── server/           ← Express backend (port 5001)
+├── client/          ← React frontend (port 3001)
 ├── db/              ← SQLite database storage
 └── README.md        ← Full documentation
 ```
