@@ -1,14 +1,52 @@
-const sqlite3 = require('sqlite3').verbose();
+const Database = require('better-sqlite3');
 const path = require('path');
 
 const DB_PATH = process.env.DB_PATH || './db/gunungclimber.db';
 
-const db = new sqlite3.Database(DB_PATH, (err) => {
-  if (err) {
-    console.error('Error opening database:', err);
+const db = new Database(DB_PATH);
+db.pragma('foreign_keys = ON');
+
+// Wrapper to make better-sqlite3 compatible with callback-based code
+class DatabaseWrapper {
+  constructor(database) {
+    this.db = database;
   }
-});
 
-db.run("PRAGMA foreign_keys = ON");
+  run(sql, params, callback) {
+    try {
+      const stmt = this.db.prepare(sql);
+      const info = stmt.run(...(Array.isArray(params) ? params : []));
+      if (callback) callback.call(info);
+      return this;
+    } catch (err) {
+      if (callback) callback(err);
+      throw err;
+    }
+  }
 
-module.exports = db;
+  get(sql, params, callback) {
+    try {
+      const stmt = this.db.prepare(sql);
+      const row = stmt.get(...(Array.isArray(params) ? params : []));
+      if (callback) callback(null, row);
+      return row;
+    } catch (err) {
+      if (callback) callback(err);
+      throw err;
+    }
+  }
+
+  all(sql, params, callback) {
+    try {
+      const stmt = this.db.prepare(sql);
+      const rows = stmt.all(...(Array.isArray(params) ? params : []));
+      if (callback) callback(null, rows);
+      return rows;
+    } catch (err) {
+      if (callback) callback(err);
+      throw err;
+    }
+  }
+}
+
+module.exports = new DatabaseWrapper(db);
