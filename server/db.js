@@ -16,11 +16,13 @@ class DatabaseWrapper {
     try {
       const stmt = this.db.prepare(sql);
       const info = stmt.run(...(Array.isArray(params) ? params : []));
-      if (callback) callback.call(info);
+      // Normalize better-sqlite3's RunResult to sqlite3's callback `this` shape
+      const context = { lastID: info.lastInsertRowid, changes: info.changes };
+      if (callback) callback.call(context);
       return this;
     } catch (err) {
       if (callback) callback(err);
-      throw err;
+      else throw err;
     }
   }
 
@@ -32,7 +34,7 @@ class DatabaseWrapper {
       return row;
     } catch (err) {
       if (callback) callback(err);
-      throw err;
+      else throw err;
     }
   }
 
@@ -44,7 +46,7 @@ class DatabaseWrapper {
       return rows;
     } catch (err) {
       if (callback) callback(err);
-      throw err;
+      else throw err;
     }
   }
 }
