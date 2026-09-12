@@ -4,7 +4,7 @@ const db = require('../db');
 const { authenticateToken } = require('../middleware/auth');
 
 router.post('/', authenticateToken, (req, res) => {
-  const { title, mountain_name, start_date, end_date, difficulty, description, public_transport_method, meeting_point } = req.body;
+  const { title, mountain_name, start_date, end_date, difficulty, description, public_transport_method, meeting_point, meeting_lat, meeting_lng } = req.body;
   const userId = req.user.id;
 
   if (!title || !mountain_name || !start_date || !end_date) {
@@ -12,9 +12,9 @@ router.post('/', authenticateToken, (req, res) => {
   }
 
   db.run(
-    `INSERT INTO itineraries (user_id, title, mountain_name, start_date, end_date, difficulty, description, public_transport_method, meeting_point)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [userId, title, mountain_name, start_date, end_date, difficulty || 'moderate', description, public_transport_method, meeting_point],
+    `INSERT INTO itineraries (user_id, title, mountain_name, start_date, end_date, difficulty, description, public_transport_method, meeting_point, meeting_lat, meeting_lng)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [userId, title, mountain_name, start_date, end_date, difficulty || 'moderate', description ?? null, public_transport_method ?? null, meeting_point ?? null, meeting_lat ?? null, meeting_lng ?? null],
     function (err) {
       if (err) {
         return res.status(500).json({ error: 'Database error' });
@@ -65,12 +65,12 @@ router.get('/:id', authenticateToken, (req, res) => {
 router.put('/:id', authenticateToken, (req, res) => {
   const { id } = req.params;
   const userId = req.user.id;
-  const { title, mountain_name, start_date, end_date, difficulty, description, public_transport_method, meeting_point } = req.body;
+  const { title, mountain_name, start_date, end_date, difficulty, description, public_transport_method, meeting_point, meeting_lat, meeting_lng } = req.body;
 
   db.run(
-    `UPDATE itineraries SET title = ?, mountain_name = ?, start_date = ?, end_date = ?, difficulty = ?, description = ?, public_transport_method = ?, meeting_point = ?, updated_at = CURRENT_TIMESTAMP
+    `UPDATE itineraries SET title = ?, mountain_name = ?, start_date = ?, end_date = ?, difficulty = ?, description = ?, public_transport_method = ?, meeting_point = ?, meeting_lat = ?, meeting_lng = ?, updated_at = CURRENT_TIMESTAMP
      WHERE id = ? AND user_id = ?`,
-    [title, mountain_name, start_date, end_date, difficulty, description, public_transport_method, meeting_point, id, userId],
+    [title, mountain_name, start_date, end_date, difficulty, description ?? null, public_transport_method ?? null, meeting_point ?? null, meeting_lat ?? null, meeting_lng ?? null, id, userId],
     function (err) {
       if (err) {
         return res.status(500).json({ error: 'Database error' });
@@ -106,7 +106,7 @@ router.post('/:id/details', authenticateToken, (req, res) => {
     db.run(
       `INSERT INTO itinerary_details (itinerary_id, day_number, description, location, activities, accommodation)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [id, day_number, description, location, activities, accommodation],
+      [id, day_number, description ?? null, location ?? null, activities ?? null, accommodation ?? null],
       function (err) {
         if (err) {
           return res.status(500).json({ error: 'Database error' });

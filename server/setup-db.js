@@ -35,11 +35,24 @@ try {
       description TEXT,
       public_transport_method TEXT,
       meeting_point TEXT,
+      meeting_lat REAL,
+      meeting_lng REAL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY(user_id) REFERENCES users(id)
     )
   `);
+
+  // Migration: add meeting_lat/meeting_lng to existing installs that predate this feature
+  const existingColumns = db.prepare('PRAGMA table_info(itineraries)').all().map((c) => c.name);
+  if (!existingColumns.includes('meeting_lat')) {
+    db.exec('ALTER TABLE itineraries ADD COLUMN meeting_lat REAL');
+    console.log('✓ Added meeting_lat column');
+  }
+  if (!existingColumns.includes('meeting_lng')) {
+    db.exec('ALTER TABLE itineraries ADD COLUMN meeting_lng REAL');
+    console.log('✓ Added meeting_lng column');
+  }
 
   // Itinerary Details table
   db.exec(`

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import MapPicker from '../components/MapPicker';
 import '../styles/ItineraryPlanner.css';
 
 function ItineraryPlanner({ onLogout }) {
@@ -18,6 +19,8 @@ function ItineraryPlanner({ onLogout }) {
     description: '',
     public_transport_method: '',
     meeting_point: '',
+    meeting_lat: null,
+    meeting_lng: null,
   });
   const [itineraryDetails, setItineraryDetails] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -65,6 +68,10 @@ function ItineraryPlanner({ onLogout }) {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+  };
+
+  const handlePinChange = (lat, lng) => {
+    setFormData((prev) => ({ ...prev, meeting_lat: lat, meeting_lng: lng }));
   };
 
   const handleSubmit = async (e) => {
@@ -209,6 +216,15 @@ function ItineraryPlanner({ onLogout }) {
                   placeholder="e.g., KL Sentral Station"
                 />
               </div>
+            </div>
+
+            <div className="form-group">
+              <label>Pin Meeting Point on Map</label>
+              <MapPicker
+                latitude={formData.meeting_lat}
+                longitude={formData.meeting_lng}
+                onChange={handlePinChange}
+              />
             </div>
 
             <div className="form-group">
