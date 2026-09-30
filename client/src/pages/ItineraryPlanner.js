@@ -27,6 +27,15 @@ function ItineraryPlanner({ onLogout }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isCustomMountain, setIsCustomMountain] = useState(false);
+  const [friends, setFriends] = useState([]);
+  const [invites, setInvites] = useState([]);
+
+  const INVITE_STATUS_LABELS = {
+    invited: 'Invited',
+    not_interested: 'Not interested',
+    interested: 'Interested',
+    going: 'Going',
+  };
 
   const malaysianMountainsByRegion = {
     'Peninsular Malaysia': [
@@ -84,7 +93,10 @@ function ItineraryPlanner({ onLogout }) {
   useEffect(() => {
     if (id) {
       fetchItinerary();
+      fetchFriends();
+      fetchInvites();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchItinerary = async () => {
@@ -102,6 +114,52 @@ function ItineraryPlanner({ onLogout }) {
       setError('Failed to load itinerary');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchFriends = async () => {
+    try {
+      const response = await axios.get('http://localhost:5001/api/friends', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setFriends(response.data.friends);
+    } catch (err) {
+      console.error('Failed to load friends', err);
+    }
+  };
+
+  const fetchInvites = async () => {
+    try {
+      const response = await axios.get(`http://localhost:5001/api/itinerary/${id}/invites`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setInvites(response.data.invites);
+    } catch (err) {
+      console.error('Failed to load invites', err);
+    }
+  };
+
+  const handleInviteFriend = async (friendId) => {
+    try {
+      await axios.post(
+        `http://localhost:5001/api/itinerary/${id}/invites`,
+        { friend_id: friendId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      fetchInvites();
+    } catch (err) {
+      console.error('Failed to invite friend', err);
+    }
+  };
+
+  const handleRemoveInvite = async (inviteId) => {
+    try {
+      await axios.delete(`http://localhost:5001/api/itinerary/invites/${inviteId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchInvites();
+    } catch (err) {
+      console.error('Failed to remove invite', err);
     }
   };
 
@@ -134,12 +192,13 @@ function ItineraryPlanner({ onLogout }) {
         await axios.put(`http://localhost:5001/api/itinerary/${id}`, formData, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        navigate('/dashboard');
       } else {
-        await axios.post('http://localhost:5001/api/itinerary', formData, {
+        const response = await axios.post('http://localhost:5001/api/itinerary', formData, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        navigate(`/itinerary/${response.data.itinerary.id}`);
       }
-      navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to save itinerary');
     }
@@ -154,7 +213,8 @@ function ItineraryPlanner({ onLogout }) {
         </button>
       </header>
 
-      <div className="planner-content">
+      <div className="planner-content planner-layout">
+        <div className="planner-form-column">
         {error && <div className="error-message">{error}</div>}
 
         <form onSubmit={handleSubmit} className="itinerary-form">
@@ -333,6 +393,41 @@ function ItineraryPlanner({ onLogout }) {
             </button>
           </div>
         </form>
+        </div>
+
+        <div className="invite-column">
+          <h3>Invite Friends</h3>
+          {!id ? (
+            <p className="invite-hint">Save this hike first, then invite friends to join.</p>
+          ) : friends.length === 0 ? (
+            <p className="invite-hint">Add some friends first to invite them on a hike.</p>
+          ) : (
+            <ul className="invite-list">
+              {friends.map((friend) => {
+                const invite = invites.find((inv) => inv.invitee_id === friend.id);
+                return (
+                  <li key={friend.friendship_id}>
+                    <span className="invite-friend-name">{friend.full_name || friend.username}</span>
+                    {invite ? (
+                      <div className="invite-status-row">
+                        <span className={`invite-status-badge status-${invite.status}`}>
+                          {INVITE_STATUS_LABELS[invite.status]}
+                        </span>
+                        <button type="button" className="btn-danger" onClick={() => handleRemoveInvite(invite.id)}>
+                          Uninvite
+                        </button>
+                      </div>
+                    ) : (
+                      <button type="button" className="btn-secondary" onClick={() => handleInviteFriend(friend.id)}>
+                        Invite
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
       </div>
     </div>
   );
