@@ -13,6 +13,10 @@ class DatabaseWrapper {
   }
 
   run(sql, params, callback) {
+    if (typeof params === 'function') {
+      callback = params;
+      params = [];
+    }
     try {
       const stmt = this.db.prepare(sql);
       const info = stmt.run(...(Array.isArray(params) ? params : []));
@@ -27,6 +31,10 @@ class DatabaseWrapper {
   }
 
   get(sql, params, callback) {
+    if (typeof params === 'function') {
+      callback = params;
+      params = [];
+    }
     try {
       const stmt = this.db.prepare(sql);
       const row = stmt.get(...(Array.isArray(params) ? params : []));
@@ -39,6 +47,10 @@ class DatabaseWrapper {
   }
 
   all(sql, params, callback) {
+    if (typeof params === 'function') {
+      callback = params;
+      params = [];
+    }
     try {
       const stmt = this.db.prepare(sql);
       const rows = stmt.all(...(Array.isArray(params) ? params : []));
