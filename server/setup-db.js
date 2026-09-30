@@ -88,6 +88,21 @@ try {
     )
   `);
 
+  // Itinerary invites: owner invites a friend, who responds with an RSVP status
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS itinerary_invites (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      itinerary_id INTEGER NOT NULL,
+      invitee_id INTEGER NOT NULL,
+      status TEXT CHECK(status IN ('invited', 'not_interested', 'interested', 'going')) DEFAULT 'invited',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(itinerary_id) REFERENCES itineraries(id),
+      FOREIGN KEY(invitee_id) REFERENCES users(id),
+      UNIQUE(itinerary_id, invitee_id)
+    )
+  `);
+
   // Create default admin user
   const adminUsername = process.env.ADMIN_USERNAME || 'admin';
   const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
