@@ -21,6 +21,7 @@ function ItineraryPlanner({ onLogout }) {
     meeting_point: '',
     meeting_lat: null,
     meeting_lng: null,
+    is_public: false,
   });
   const [itineraryDetails, setItineraryDetails] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -247,6 +248,23 @@ function ItineraryPlanner({ onLogout }) {
                   required
                 />
               </div>
+            </div>
+
+            <div className="form-group">
+              <label className="privacy-toggle">
+                <input
+                  type="checkbox"
+                  name="is_public"
+                  checked={!!formData.is_public}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, is_public: e.target.checked }))}
+                />
+                Make this hike public
+              </label>
+              <p className="privacy-toggle-hint">
+                {formData.is_public
+                  ? 'Visible on the shared map for all users to see.'
+                  : 'Private — only visible on your own map.'}
+              </p>
             </div>
           </div>
 
