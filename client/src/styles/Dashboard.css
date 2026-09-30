@@ -151,6 +151,43 @@
   font-style: italic;
 }
 
+.invitations-section {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #eee;
+}
+
+.invitations-section h2 {
+  margin: 0 0 15px 0;
+}
+
+.invite-owner {
+  font-size: 13px;
+  color: #999;
+  font-style: italic;
+  font-weight: normal;
+}
+
+.rsvp-btn {
+  background-color: #eee;
+  color: #555;
+}
+
+.rsvp-btn.active.rsvp-not_interested {
+  background-color: #f44336;
+  color: white;
+}
+
+.rsvp-btn.active.rsvp-interested {
+  background-color: #ffc107;
+  color: #333;
+}
+
+.rsvp-btn.active.rsvp-going {
+  background-color: #4CAF50;
+  color: white;
+}
+
 .calendar-layout {
   display: flex;
   gap: 30px;
