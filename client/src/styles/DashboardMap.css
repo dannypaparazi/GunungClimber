@@ -1,0 +1,64 @@
+.dashboard-map {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+}
+
+.dashboard-map-legend {
+  display: flex;
+  gap: 16px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #555;
+  border-bottom: 1px solid #eee;
+}
+
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.dot-own {
+  background-color: #2196F3;
+}
+
+.dot-other {
+  background-color: #4CAF50;
+}
+
+.dashboard-map-canvas {
+  width: 100%;
+  height: 500px;
+}
+
+.dashboard-map-popup h4 {
+  margin: 0 0 6px 0;
+}
+
+.dashboard-map-popup p {
+  margin: 4px 0;
+  font-size: 13px;
+}
+
+.dashboard-map-popup .mountain-name {
+  color: #2196F3;
+  font-weight: 600;
+}
+
+.dashboard-map-popup .owner {
+  font-style: italic;
+  color: #777;
+}
+
+.dashboard-map-popup .btn-secondary {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 4px;
+  text-decoration: none;
+}

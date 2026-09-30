@@ -23,6 +23,25 @@
   padding: 20px;
 }
 
+.privacy-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.privacy-toggle input {
+  width: 16px;
+  height: 16px;
+}
+
+.privacy-toggle-hint {
+  margin: 6px 0 0 0;
+  font-size: 13px;
+  color: #777;
+}
+
 .itinerary-form {
   background: white;
   border-radius: 8px;

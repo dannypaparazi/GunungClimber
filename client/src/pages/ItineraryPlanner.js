@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import MapPicker from '../components/MapPicker';
 import '../styles/ItineraryPlanner.css';
 
 function ItineraryPlanner({ onLogout }) {
@@ -18,20 +19,59 @@ function ItineraryPlanner({ onLogout }) {
     description: '',
     public_transport_method: '',
     meeting_point: '',
+    meeting_lat: null,
+    meeting_lng: null,
+    is_public: false,
   });
   const [itineraryDetails, setItineraryDetails] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isCustomMountain, setIsCustomMountain] = useState(false);
 
-  const malaysianMountains = [
-    'Gunung Kinabalu',
-    'Gunung Tahan',
-    'Gunung Ledang',
-    'Gunung Semporna',
-    'Gunung Irau',
-    'Gunung Jerai',
-    'Gunung Rajah',
-  ];
+  const malaysianMountainsByRegion = {
+    'Peninsular Malaysia': [
+      'Gunung Tahan',
+      'Gunung Korbu',
+      'Gunung Yong Belar',
+      'Gunung Chamah',
+      'Gunung Gayong',
+      'Gunung Ledang',
+      'Gunung Irau',
+      'Gunung Ulu Sepat',
+      'Gunung Berembun',
+      'Gunung Jerai',
+      'Gunung Benom',
+      'Gunung Nuang',
+      'Gunung Bunga Buah',
+      'Gunung Angsi',
+      'Gunung Datuk',
+      'Gunung Stong',
+      'Gunung Brinchang',
+      'Gunung Bubu',
+      'Gunung Semangkok',
+    ],
+    Sabah: [
+      'Gunung Kinabalu',
+      'Gunung Tambuyukon',
+      'Gunung Trus Madi',
+      'Gunung Alab',
+      'Gunung Lotung',
+      'Gunung Silam',
+      'Gunung Madalon',
+    ],
+    Sarawak: [
+      'Gunung Mulu',
+      'Gunung Api',
+      'Gunung Benarat',
+      'Gunung Murud',
+      'Gunung Santubong',
+      'Gunung Gading',
+      'Bukit Batu Lawi',
+    ],
+  };
+
+  const allMountains = Object.values(malaysianMountainsByRegion).flat();
+  const OTHER_MOUNTAIN = '__other__';
 
   const publicTransportOptions = [
     'Bus',
@@ -50,11 +90,14 @@ function ItineraryPlanner({ onLogout }) {
   const fetchItinerary = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:5000/api/itinerary/${id}`, {
+      const response = await axios.get(`http://localhost:5001/api/itinerary/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setFormData(response.data.itinerary);
       setItineraryDetails(response.data.details);
+      if (response.data.itinerary.mountain_name && !allMountains.includes(response.data.itinerary.mountain_name)) {
+        setIsCustomMountain(true);
+      }
     } catch (err) {
       setError('Failed to load itinerary');
     } finally {
@@ -67,17 +110,32 @@ function ItineraryPlanner({ onLogout }) {
     setFormData({ ...formData, [name]: value });
   };
 
+  const handlePinChange = (lat, lng) => {
+    setFormData((prev) => ({ ...prev, meeting_lat: lat, meeting_lng: lng }));
+  };
+
+  const handleMountainSelectChange = (e) => {
+    const { value } = e.target;
+    if (value === OTHER_MOUNTAIN) {
+      setIsCustomMountain(true);
+      setFormData((prev) => ({ ...prev, mountain_name: '' }));
+    } else {
+      setIsCustomMountain(false);
+      setFormData((prev) => ({ ...prev, mountain_name: value }));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
     try {
       if (id) {
-        await axios.put(`http://localhost:5000/api/itinerary/${id}`, formData, {
+        await axios.put(`http://localhost:5001/api/itinerary/${id}`, formData, {
           headers: { Authorization: `Bearer ${token}` },
         });
       } else {
-        await axios.post('http://localhost:5000/api/itinerary', formData, {
+        await axios.post('http://localhost:5001/api/itinerary', formData, {
           headers: { Authorization: `Bearer ${token}` },
         });
       }
@@ -122,17 +180,33 @@ function ItineraryPlanner({ onLogout }) {
                 <select
                   id="mountain_name"
                   name="mountain_name"
-                  value={formData.mountain_name}
-                  onChange={handleInputChange}
-                  required
+                  value={isCustomMountain ? OTHER_MOUNTAIN : formData.mountain_name}
+                  onChange={handleMountainSelectChange}
+                  required={!isCustomMountain}
                 >
                   <option value="">Select a mountain</option>
-                  {malaysianMountains.map((mountain) => (
-                    <option key={mountain} value={mountain}>
-                      {mountain}
-                    </option>
+                  {Object.entries(malaysianMountainsByRegion).map(([region, mountains]) => (
+                    <optgroup key={region} label={region}>
+                      {mountains.map((mountain) => (
+                        <option key={mountain} value={mountain}>
+                          {mountain}
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
+                  <option value={OTHER_MOUNTAIN}>Other (please specify)</option>
                 </select>
+                {isCustomMountain && (
+                  <input
+                    type="text"
+                    name="mountain_name"
+                    value={formData.mountain_name}
+                    onChange={handleInputChange}
+                    placeholder="Enter mountain name"
+                    required
+                    style={{ marginTop: '0.5rem' }}
+                  />
+                )}
               </div>
 
               <div className="form-group">
@@ -175,6 +249,23 @@ function ItineraryPlanner({ onLogout }) {
                 />
               </div>
             </div>
+
+            <div className="form-group">
+              <label className="privacy-toggle">
+                <input
+                  type="checkbox"
+                  name="is_public"
+                  checked={!!formData.is_public}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, is_public: e.target.checked }))}
+                />
+                Make this hike public
+              </label>
+              <p className="privacy-toggle-hint">
+                {formData.is_public
+                  ? 'Visible on the shared map for all users to see.'
+                  : 'Private — only visible on your own map.'}
+              </p>
+            </div>
           </div>
 
           <div className="form-section">
@@ -209,6 +300,15 @@ function ItineraryPlanner({ onLogout }) {
                   placeholder="e.g., KL Sentral Station"
                 />
               </div>
+            </div>
+
+            <div className="form-group">
+              <label>Pin Meeting Point on Map</label>
+              <MapPicker
+                latitude={formData.meeting_lat}
+                longitude={formData.meeting_lng}
+                onChange={handlePinChange}
+              />
             </div>
 
             <div className="form-group">

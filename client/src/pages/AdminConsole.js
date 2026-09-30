@@ -24,7 +24,7 @@ function AdminConsole({ onLogout }) {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5000/api/admin/users', {
+      const response = await axios.get('http://localhost:5001/api/admin/users', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(response.data.users);
@@ -39,7 +39,7 @@ function AdminConsole({ onLogout }) {
   const handleCreateUser = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/admin/create-user', formData, {
+      await axios.post('http://localhost:5001/api/admin/create-user', formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setFormData({ username: '', email: '', password: '', full_name: '' });
@@ -53,7 +53,7 @@ function AdminConsole({ onLogout }) {
   const handleDeleteUser = async (userId) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
-        await axios.delete(`http://localhost:5000/api/admin/users/${userId}`, {
+        await axios.delete(`http://localhost:5001/api/admin/users/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         fetchUsers();
