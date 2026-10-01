@@ -22,12 +22,16 @@
   margin-right: 4px;
 }
 
-.dot-own {
+.dot-planned {
   background-color: #2196F3;
 }
 
-.dot-other {
+.dot-hiked {
   background-color: #4CAF50;
+}
+
+.dot-public {
+  background-color: #FFC107;
 }
 
 .dashboard-map-canvas {
