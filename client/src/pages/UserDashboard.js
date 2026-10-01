@@ -17,10 +17,50 @@ function formatDateKey(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
-function HikesTab({ itineraries, loading, pins, onDelete, onTogglePublic }) {
+const INVITE_STATUS_LABELS = {
+  invited: 'Invited',
+  not_interested: 'Not interested',
+  interested: 'Interested',
+  going: 'Going',
+};
+
+function InvitationsSection({ invites, onRespond }) {
+  if (invites.length === 0) return null;
+
+  return (
+    <div className="invitations-section">
+      <h2>Hike Invitations</h2>
+      <ul className="friends-list">
+        {invites.map((invite) => (
+          <li key={invite.invite_id}>
+            <span>
+              {invite.title} &mdash; {invite.mountain_name}
+              <span className="invite-owner"> (invited by {invite.owner_full_name || invite.owner_username})</span>
+            </span>
+            <div className="friends-list-actions">
+              {['not_interested', 'interested', 'going'].map((status) => (
+                <button
+                  key={status}
+                  className={`rsvp-btn rsvp-${status} ${invite.status === status ? 'active' : ''}`}
+                  onClick={() => onRespond(invite.invite_id, status)}
+                >
+                  {INVITE_STATUS_LABELS[status]}
+                </button>
+              ))}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function HikesTab({ itineraries, loading, pins, invites, onDelete, onTogglePublic, onRespondInvite }) {
   return (
     <div className="hikes-layout">
       <div className="hikes-list">
+        <InvitationsSection invites={invites} onRespond={onRespondInvite} />
+
         <div className="section-header">
           <h2>My Hiking Itineraries</h2>
           <Link to="/itinerary/new" className="btn-primary">
@@ -198,6 +238,7 @@ function UserDashboard({ onLogout }) {
   const [friends, setFriends] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
   const [users, setUsers] = useState([]);
+  const [invites, setInvites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState(null);
   const navigate = useNavigate();
@@ -211,6 +252,7 @@ function UserDashboard({ onLogout }) {
     fetchFriends();
     fetchFriendRequests();
     fetchUsers();
+    fetchInvites();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -268,6 +310,24 @@ function UserDashboard({ onLogout }) {
       setUsers(response.data.users);
     } catch (err) {
       console.error('Failed to load users', err);
+    }
+  };
+
+  const fetchInvites = async () => {
+    try {
+      const response = await axios.get(`${API_BASE}/itinerary/invites/mine`, { headers });
+      setInvites(response.data.invites);
+    } catch (err) {
+      console.error('Failed to load invites', err);
+    }
+  };
+
+  const handleRespondInvite = async (inviteId, status) => {
+    try {
+      await axios.put(`${API_BASE}/itinerary/invites/${inviteId}`, { status }, { headers });
+      fetchInvites();
+    } catch (err) {
+      console.error('Failed to update invite response', err);
     }
   };
 
@@ -365,8 +425,10 @@ function UserDashboard({ onLogout }) {
               itineraries={itineraries}
               loading={loading}
               pins={pins}
+              invites={invites}
               onDelete={handleDeleteItinerary}
               onTogglePublic={handleTogglePublic}
+              onRespondInvite={handleRespondInvite}
             />
           )}
           {activeTab === 'friends' && (
