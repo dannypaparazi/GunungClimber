@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import L from 'leaflet';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import 'leaflet/dist/leaflet.css';
+import StarRating from './StarRating';
 import '../styles/DashboardMap.css';
 
 function markerIcon(color) {
@@ -17,17 +18,28 @@ function markerIcon(color) {
   });
 }
 
-const OWN_ICON = markerIcon('blue');
-const OTHER_ICON = markerIcon('green');
+const PLANNED_ICON = markerIcon('blue');
+const HIKED_ICON = markerIcon('green');
+const PUBLIC_ICON = markerIcon('yellow');
 
 const DEFAULT_CENTER = [4.2105, 101.9758]; // Roughly central Malaysia
+
+function isAlreadyHiked(pin) {
+  return new Date(pin.end_date) < new Date();
+}
+
+function pinIcon(pin) {
+  if (!pin.is_own) return PUBLIC_ICON;
+  return isAlreadyHiked(pin) ? HIKED_ICON : PLANNED_ICON;
+}
 
 function DashboardMap({ pins }) {
   return (
     <div className="dashboard-map">
       <div className="dashboard-map-legend">
-        <span><span className="dot dot-own" /> Your hikes</span>
-        <span><span className="dot dot-other" /> Public hikes from others</span>
+        <span><span className="dot dot-planned" /> Planned hikes</span>
+        <span><span className="dot dot-hiked" /> Already hiked</span>
+        <span><span className="dot dot-public" /> Open to public</span>
       </div>
 
       <MapContainer center={DEFAULT_CENTER} zoom={6} className="dashboard-map-canvas">
@@ -39,7 +51,7 @@ function DashboardMap({ pins }) {
           <Marker
             key={pin.id}
             position={[pin.meeting_lat, pin.meeting_lng]}
-            icon={pin.is_own ? OWN_ICON : OTHER_ICON}
+            icon={pinIcon(pin)}
           >
             <Popup>
               <div className="dashboard-map-popup">
@@ -48,7 +60,7 @@ function DashboardMap({ pins }) {
                 <p>
                   {new Date(pin.start_date).toLocaleDateString()} - {new Date(pin.end_date).toLocaleDateString()}
                 </p>
-                <p>Difficulty: {pin.difficulty}</p>
+                <p>Difficulty: <StarRating value={pin.difficulty} readOnly /></p>
                 {pin.meeting_point && <p>Meeting point: {pin.meeting_point}</p>}
                 <p className="owner">
                   {pin.is_own ? 'Your hike' : `By ${pin.owner_full_name || pin.owner_username}`}

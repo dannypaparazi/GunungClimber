@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import MapPicker from '../components/MapPicker';
+import StarRating from '../components/StarRating';
 import '../styles/ItineraryPlanner.css';
 
 function ItineraryPlanner({ onLogout }) {
@@ -15,7 +16,7 @@ function ItineraryPlanner({ onLogout }) {
     mountain_name: '',
     start_date: '',
     end_date: '',
-    difficulty: 'moderate',
+    difficulty: 3,
     description: '',
     public_transport_method: '',
     meeting_point: '',
@@ -271,16 +272,12 @@ function ItineraryPlanner({ onLogout }) {
 
               <div className="form-group">
                 <label htmlFor="difficulty">Difficulty Level</label>
-                <select
-                  id="difficulty"
-                  name="difficulty"
-                  value={formData.difficulty}
-                  onChange={handleInputChange}
-                >
-                  <option value="easy">Easy</option>
-                  <option value="moderate">Moderate</option>
-                  <option value="hard">Hard</option>
-                </select>
+                <div id="difficulty">
+                  <StarRating
+                    value={formData.difficulty}
+                    onChange={(star) => setFormData((prev) => ({ ...prev, difficulty: star }))}
+                  />
+                </div>
               </div>
             </div>
 

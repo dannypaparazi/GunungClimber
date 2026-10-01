@@ -31,7 +31,7 @@ try {
       mountain_name TEXT NOT NULL,
       start_date DATE NOT NULL,
       end_date DATE NOT NULL,
-      difficulty TEXT CHECK(difficulty IN ('easy', 'moderate', 'hard')) DEFAULT 'moderate',
+      difficulty INTEGER CHECK(difficulty BETWEEN 1 AND 5) DEFAULT 3,
       description TEXT,
       public_transport_method TEXT,
       meeting_point TEXT,
@@ -56,6 +56,46 @@ try {
   if (!existingColumns.includes('is_public')) {
     db.exec('ALTER TABLE itineraries ADD COLUMN is_public INTEGER NOT NULL DEFAULT 0');
     console.log('✓ Added is_public column');
+  }
+
+  // Migration: difficulty used to be a text enum (easy/moderate/hard); it's now a 1-5
+  // star rating. SQLite can't alter a CHECK constraint in place, so rebuild the table.
+  const difficultyColumn = db.prepare('PRAGMA table_info(itineraries)').all().find((c) => c.name === 'difficulty');
+  if (difficultyColumn && difficultyColumn.type.toUpperCase() === 'TEXT') {
+    db.pragma('foreign_keys = OFF');
+    db.exec('DROP TABLE IF EXISTS itineraries_new');
+    db.exec(`
+      CREATE TABLE itineraries_new (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        mountain_name TEXT NOT NULL,
+        start_date DATE NOT NULL,
+        end_date DATE NOT NULL,
+        difficulty INTEGER CHECK(difficulty BETWEEN 1 AND 5) DEFAULT 3,
+        description TEXT,
+        public_transport_method TEXT,
+        meeting_point TEXT,
+        meeting_lat REAL,
+        meeting_lng REAL,
+        is_public INTEGER NOT NULL DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES users(id)
+      )
+    `);
+    db.exec(`
+      INSERT INTO itineraries_new
+      SELECT id, user_id, title, mountain_name, start_date, end_date,
+        CASE difficulty WHEN 'easy' THEN 2 WHEN 'moderate' THEN 3 WHEN 'hard' THEN 5 ELSE 3 END,
+        description, public_transport_method, meeting_point, meeting_lat, meeting_lng,
+        is_public, created_at, updated_at
+      FROM itineraries
+    `);
+    db.exec('DROP TABLE itineraries');
+    db.exec('ALTER TABLE itineraries_new RENAME TO itineraries');
+    db.pragma('foreign_keys = ON');
+    console.log('✓ Converted difficulty to a 1-5 star rating');
   }
 
   // Itinerary Details table

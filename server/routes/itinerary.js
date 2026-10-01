@@ -14,7 +14,7 @@ router.post('/', authenticateToken, (req, res) => {
   db.run(
     `INSERT INTO itineraries (user_id, title, mountain_name, start_date, end_date, difficulty, description, public_transport_method, meeting_point, meeting_lat, meeting_lng, is_public)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [userId, title, mountain_name, start_date, end_date, difficulty || 'moderate', description ?? null, public_transport_method ?? null, meeting_point ?? null, meeting_lat ?? null, meeting_lng ?? null, is_public ? 1 : 0],
+    [userId, title, mountain_name, start_date, end_date, difficulty || 3, description ?? null, public_transport_method ?? null, meeting_point ?? null, meeting_lat ?? null, meeting_lng ?? null, is_public ? 1 : 0],
     function (err) {
       if (err) {
         return res.status(500).json({ error: 'Database error' });
