@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import L from 'leaflet';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import 'leaflet/dist/leaflet.css';
+import StarRating from './StarRating';
 import '../styles/DashboardMap.css';
 
 function markerIcon(color) {
@@ -59,7 +60,7 @@ function DashboardMap({ pins }) {
                 <p>
                   {new Date(pin.start_date).toLocaleDateString()} - {new Date(pin.end_date).toLocaleDateString()}
                 </p>
-                <p>Difficulty: {pin.difficulty}</p>
+                <p>Difficulty: <StarRating value={pin.difficulty} readOnly /></p>
                 {pin.meeting_point && <p>Meeting point: {pin.meeting_point}</p>}
                 <p className="owner">
                   {pin.is_own ? 'Your hike' : `By ${pin.owner_full_name || pin.owner_username}`}

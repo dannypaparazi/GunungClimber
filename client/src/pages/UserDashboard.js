@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import DashboardMap from '../components/DashboardMap';
+import StarRating from '../components/StarRating';
 import '../styles/Dashboard.css';
 
 const API_BASE = 'http://localhost:5001/api';
@@ -47,7 +48,7 @@ function HikesTab({ itineraries, loading, pins, onDelete, onTogglePublic }) {
                 <p className="mountain-name">{itinerary.mountain_name}</p>
                 <div className="itinerary-details">
                   <p><strong>Duration:</strong> {new Date(itinerary.start_date).toLocaleDateString()} - {new Date(itinerary.end_date).toLocaleDateString()}</p>
-                  <p><strong>Difficulty:</strong> {itinerary.difficulty}</p>
+                  <p><strong>Difficulty:</strong> <StarRating value={itinerary.difficulty} readOnly /></p>
                   {itinerary.public_transport_method && (
                     <p><strong>Transport:</strong> {itinerary.public_transport_method}</p>
                   )}
