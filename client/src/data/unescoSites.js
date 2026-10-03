@@ -1,5 +1,6 @@
-// Malaysia's UNESCO World Heritage Sites
+// UNESCO World Heritage Sites in Malaysia and Singapore
 // https://whc.unesco.org/en/statesparties/my
+// https://whc.unesco.org/en/statesparties/sg
 const unescoSites = [
   {
     id: 'kinabalu-park',
@@ -45,6 +46,15 @@ const unescoSites = [
     lat: 5.1167,
     lng: 101.0667,
     description: 'Evidence of early human presence spanning the oldest and longest records of early man outside the African continent.',
+  },
+  {
+    id: 'singapore-botanic-gardens',
+    name: 'Singapore Botanic Gardens',
+    category: 'Cultural',
+    year: 2015,
+    lat: 1.3138,
+    lng: 103.8159,
+    description: 'A tropical garden founded in 1859, and Singapore\'s first UNESCO World Heritage Site.',
   },
 ];
 
