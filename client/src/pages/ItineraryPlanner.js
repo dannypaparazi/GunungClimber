@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
-import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css';
 import MapPicker from '../components/MapPicker';
 import StarRating from '../components/StarRating';
 import '../styles/ItineraryPlanner.css';
@@ -24,8 +22,6 @@ function ItineraryPlanner({ onLogout }) {
     meeting_lng: null,
     is_public: false,
   });
-  const [itineraryDetails, setItineraryDetails] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isCustomMountain, setIsCustomMountain] = useState(false);
   const [friends, setFriends] = useState([]);
@@ -102,19 +98,15 @@ function ItineraryPlanner({ onLogout }) {
 
   const fetchItinerary = async () => {
     try {
-      setLoading(true);
       const response = await axios.get(`http://localhost:5001/api/itinerary/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setFormData(response.data.itinerary);
-      setItineraryDetails(response.data.details);
       if (response.data.itinerary.mountain_name && !allMountains.includes(response.data.itinerary.mountain_name)) {
         setIsCustomMountain(true);
       }
     } catch (err) {
       setError('Failed to load itinerary');
-    } finally {
-      setLoading(false);
     }
   };
 
