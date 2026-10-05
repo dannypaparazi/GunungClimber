@@ -5,6 +5,7 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import DashboardMap from '../components/DashboardMap';
 import StarRating from '../components/StarRating';
+import makanSpots from '../data/makanSpots';
 import '../styles/Dashboard.css';
 
 const API_BASE = 'http://localhost:5001/api';
@@ -232,6 +233,28 @@ function CalendarTab({ itineraries }) {
   );
 }
 
+function MakanTab() {
+  return (
+    <div className="makan-layout">
+      {Object.entries(makanSpots).map(([region, spots]) => (
+        <div key={region} className="makan-region">
+          <h3>{region}</h3>
+          <div className="makan-grid">
+            {spots.map((spot) => (
+              <div key={spot.id} className="makan-card">
+                <h4>{spot.name}</h4>
+                <p className="makan-location">{spot.location}</p>
+                <p className="makan-specialty">{spot.specialty}</p>
+                <p>{spot.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function UserDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState('hikes');
   const [itineraries, setItineraries] = useState([]);
@@ -417,6 +440,12 @@ function UserDashboard({ onLogout }) {
         >
           Calendar
         </button>
+        <button
+          className={`dashboard-tab ${activeTab === 'makan' ? 'active' : ''}`}
+          onClick={() => setActiveTab('makan')}
+        >
+          Makan
+        </button>
       </div>
 
       <div className="dashboard-content">
@@ -443,6 +472,7 @@ function UserDashboard({ onLogout }) {
             />
           )}
           {activeTab === 'calendar' && <CalendarTab itineraries={itineraries} />}
+          {activeTab === 'makan' && <MakanTab />}
         </div>
       </div>
     </div>
