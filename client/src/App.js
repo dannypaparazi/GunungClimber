@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from './firebase';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import UserDashboard from './pages/UserDashboard';
@@ -8,29 +11,39 @@ import ItineraryPlanner from './pages/ItineraryPlanner';
 import './styles/App.css';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
-  const [userRole, setUserRole] = useState(localStorage.getItem('userRole') || null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const role = localStorage.getItem('userRole');
-    setIsAuthenticated(!!token);
-    setUserRole(role);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+        setUserRole(userDoc.exists() ? userDoc.data().role : 'user');
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+        setUserRole(null);
+      }
+      setAuthChecked(true);
+    });
+    return unsubscribe;
   }, []);
 
-  const handleLogin = (token, role) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('userRole', role);
+  const handleLogin = (role) => {
     setIsAuthenticated(true);
     setUserRole(role);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userRole');
+    signOut(auth);
     setIsAuthenticated(false);
     setUserRole(null);
   };
+
+  if (!authChecked) {
+    return null;
+  }
 
   return (
     <BrowserRouter>

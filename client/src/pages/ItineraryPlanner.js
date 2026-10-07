@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
+import { auth } from '../firebase';
+import {
+  createItinerary,
+  updateItinerary,
+  getItinerary,
+  getMyFriends,
+  getInvitesForItinerary,
+  inviteFriend,
+  removeInvite,
+} from '../firestoreApi';
 import MapPicker from '../components/MapPicker';
 import StarRating from '../components/StarRating';
 import '../styles/ItineraryPlanner.css';
@@ -8,7 +17,7 @@ import '../styles/ItineraryPlanner.css';
 function ItineraryPlanner({ onLogout }) {
   const { id } = useParams();
   const navigate = useNavigate();
-  const token = localStorage.getItem('token');
+  const uid = auth.currentUser.uid;
   const [formData, setFormData] = useState({
     title: '',
     mountain_name: '',
@@ -98,11 +107,9 @@ function ItineraryPlanner({ onLogout }) {
 
   const fetchItinerary = async () => {
     try {
-      const response = await axios.get(`http://localhost:5001/api/itinerary/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setFormData(response.data.itinerary);
-      if (response.data.itinerary.mountain_name && !allMountains.includes(response.data.itinerary.mountain_name)) {
+      const itinerary = await getItinerary(id);
+      setFormData(itinerary);
+      if (itinerary.mountain_name && !allMountains.includes(itinerary.mountain_name)) {
         setIsCustomMountain(true);
       }
     } catch (err) {
@@ -112,10 +119,7 @@ function ItineraryPlanner({ onLogout }) {
 
   const fetchFriends = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/friends', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setFriends(response.data.friends);
+      setFriends(await getMyFriends(uid));
     } catch (err) {
       console.error('Failed to load friends', err);
     }
@@ -123,10 +127,7 @@ function ItineraryPlanner({ onLogout }) {
 
   const fetchInvites = async () => {
     try {
-      const response = await axios.get(`http://localhost:5001/api/itinerary/${id}/invites`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setInvites(response.data.invites);
+      setInvites(await getInvitesForItinerary(id));
     } catch (err) {
       console.error('Failed to load invites', err);
     }
@@ -134,11 +135,7 @@ function ItineraryPlanner({ onLogout }) {
 
   const handleInviteFriend = async (friendId) => {
     try {
-      await axios.post(
-        `http://localhost:5001/api/itinerary/${id}/invites`,
-        { friend_id: friendId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await inviteFriend({ id, ...formData }, friendId);
       fetchInvites();
     } catch (err) {
       console.error('Failed to invite friend', err);
@@ -147,9 +144,7 @@ function ItineraryPlanner({ onLogout }) {
 
   const handleRemoveInvite = async (inviteId) => {
     try {
-      await axios.delete(`http://localhost:5001/api/itinerary/invites/${inviteId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await removeInvite(inviteId);
       fetchInvites();
     } catch (err) {
       console.error('Failed to remove invite', err);
@@ -182,18 +177,14 @@ function ItineraryPlanner({ onLogout }) {
 
     try {
       if (id) {
-        await axios.put(`http://localhost:5001/api/itinerary/${id}`, formData, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await updateItinerary(id, formData);
         navigate('/dashboard');
       } else {
-        const response = await axios.post('http://localhost:5001/api/itinerary', formData, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        navigate(`/itinerary/${response.data.itinerary.id}`);
+        const newId = await createItinerary(uid, formData);
+        navigate(`/itinerary/${newId}`);
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to save itinerary');
+      setError(err.message || 'Failed to save itinerary');
     }
   };
 
