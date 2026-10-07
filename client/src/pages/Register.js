@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { auth, db } from '../firebase';
 import '../styles/Auth.css';
 
 function Register({ onLogin }) {
@@ -31,17 +33,29 @@ function Register({ onLogin }) {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5001/api/auth/register', {
+      const usernameQuery = query(collection(db, 'users'), where('username', '==', formData.username));
+      const existing = await getDocs(usernameQuery);
+      if (!existing.empty) {
+        setError('Username already taken');
+        setLoading(false);
+        return;
+      }
+
+      const credential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+      const role = 'user';
+
+      await setDoc(doc(db, 'users', credential.user.uid), {
         username: formData.username,
         email: formData.email,
-        password: formData.password,
         full_name: formData.full_name,
+        role,
+        created_at: new Date().toISOString(),
       });
 
-      onLogin(response.data.token, response.data.user.role);
+      onLogin(role);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.error || 'Registration failed');
+      setError(firebaseErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -132,6 +146,19 @@ function Register({ onLogin }) {
       </div>
     </div>
   );
+}
+
+function firebaseErrorMessage(err) {
+  switch (err.code) {
+    case 'auth/email-already-in-use':
+      return 'An account with this email already exists';
+    case 'auth/weak-password':
+      return 'Password must be at least 6 characters';
+    case 'auth/invalid-email':
+      return 'Invalid email address';
+    default:
+      return err.message || 'Registration failed';
+  }
 }
 
 export default Register;

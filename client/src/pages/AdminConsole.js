@@ -1,21 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { auth } from '../firebase';
+import { getAllUsers, updateUserRole, deleteUserProfile } from '../firestoreApi';
 import '../styles/Admin.css';
 
 function AdminConsole({ onLogout }) {
   const [users, setUsers] = useState([]);
-  const [showCreateUser, setShowCreateUser] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    full_name: '',
-  });
   const navigate = useNavigate();
-  const token = localStorage.getItem('token');
 
   useEffect(() => {
     fetchUsers();
@@ -25,10 +18,7 @@ function AdminConsole({ onLogout }) {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5001/api/admin/users', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setUsers(response.data.users);
+      setUsers(await getAllUsers());
     } catch (err) {
       setError('Failed to load users');
       console.error(err);
@@ -37,26 +27,19 @@ function AdminConsole({ onLogout }) {
     }
   };
 
-  const handleCreateUser = async (e) => {
-    e.preventDefault();
+  const handleToggleRole = async (user) => {
     try {
-      await axios.post('http://localhost:5001/api/admin/create-user', formData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setFormData({ username: '', email: '', password: '', full_name: '' });
-      setShowCreateUser(false);
+      await updateUserRole(user.id, user.role === 'admin' ? 'user' : 'admin');
       fetchUsers();
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to create user');
+      setError('Failed to update role');
     }
   };
 
   const handleDeleteUser = async (userId) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
+    if (window.confirm('Remove this user\'s profile? They will no longer be able to use the app.')) {
       try {
-        await axios.delete(`http://localhost:5001/api/admin/users/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await deleteUserProfile(userId);
         fetchUsers();
       } catch (err) {
         setError('Failed to delete user');
@@ -77,66 +60,9 @@ function AdminConsole({ onLogout }) {
         <div className="users-section">
           <div className="section-header">
             <h2>User Management</h2>
-            <button
-              onClick={() => setShowCreateUser(!showCreateUser)}
-              className="btn-primary"
-            >
-              {showCreateUser ? 'Cancel' : 'Create New User'}
-            </button>
           </div>
 
           {error && <div className="error-message">{error}</div>}
-
-          {showCreateUser && (
-            <form className="create-user-form" onSubmit={handleCreateUser}>
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="username">Username</label>
-                  <input
-                    id="username"
-                    type="text"
-                    value={formData.username}
-                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="email">Email</label>
-                  <input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="password">Password</label>
-                  <input
-                    id="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="full_name">Full Name</label>
-                  <input
-                    id="full_name"
-                    type="text"
-                    value={formData.full_name}
-                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                  />
-                </div>
-              </div>
-              <button type="submit" className="btn-primary">
-                Create User
-              </button>
-            </form>
-          )}
 
           {loading ? (
             <p>Loading users...</p>
@@ -159,12 +85,19 @@ function AdminConsole({ onLogout }) {
                     <td>{user.email}</td>
                     <td>{user.full_name}</td>
                     <td>{user.role}</td>
-                    <td>{new Date(user.created_at).toLocaleDateString()}</td>
+                    <td>{user.created_at ? new Date(user.created_at).toLocaleDateString() : '—'}</td>
                     <td>
+                      <button
+                        onClick={() => handleToggleRole(user)}
+                        className="btn-secondary"
+                        disabled={user.id === auth.currentUser.uid}
+                      >
+                        {user.role === 'admin' ? 'Demote to User' : 'Promote to Admin'}
+                      </button>
                       <button
                         onClick={() => handleDeleteUser(user.id)}
                         className="btn-danger"
-                        disabled={user.role === 'admin'}
+                        disabled={user.id === auth.currentUser.uid}
                       >
                         Delete
                       </button>
