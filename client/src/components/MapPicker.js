@@ -174,6 +174,14 @@ function MapPicker({ latitude, longitude, onChange }) {
       {hasPosition && (
         <div className="map-picker-coords">
           📍 Pinned at {latitude.toFixed(5)}, {longitude.toFixed(5)}
+          <a
+            href={`https://www.google.com/maps?q=${latitude},${longitude}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="map-picker-gmaps-link"
+          >
+            Open in Google Maps
+          </a>
         </div>
       )}
     </div>

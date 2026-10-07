@@ -105,9 +105,22 @@
 }
 
 .map-picker-coords {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 8px 12px;
   font-size: 13px;
   color: #4CAF50;
   background-color: #f1f8f1;
   border-top: 1px solid #eee;
+}
+
+.map-picker-gmaps-link {
+  color: #1a73e8;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.map-picker-gmaps-link:hover {
+  text-decoration: underline;
 }
