@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { Link } from 'react-router-dom';
 import L from 'leaflet';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import 'leaflet/dist/leaflet.css';
 import StarRating from './StarRating';
 import unescoSites from '../data/unescoSites';
+import makanSpotsByRegion from '../data/makanSpots';
 import '../styles/DashboardMap.css';
 
 function markerIcon(color) {
@@ -23,8 +24,13 @@ const PLANNED_ICON = markerIcon('blue');
 const HIKED_ICON = markerIcon('green');
 const PUBLIC_ICON = markerIcon('yellow');
 const UNESCO_ICON = markerIcon('violet');
+const MAKAN_ICON = markerIcon('orange');
 
 const DEFAULT_CENTER = [4.2105, 101.9758]; // Roughly central Malaysia
+
+const makanSpots = Object.entries(makanSpotsByRegion).flatMap(([region, spots]) =>
+  spots.map((spot) => ({ ...spot, region }))
+);
 
 function isAlreadyHiked(pin) {
   return new Date(pin.end_date) < new Date();
@@ -51,10 +57,26 @@ const LEGEND_ITEMS = [
   { key: 'hiked', label: 'Already hiked' },
   { key: 'public', label: 'Open to public' },
   { key: 'unesco', label: 'UNESCO Heritage Site' },
+  { key: 'makan', label: 'Makan Spot' },
 ];
 
+function FlyToLocation({ target, zoom }) {
+  const map = useMap();
+
+  React.useEffect(() => {
+    if (target) {
+      map.flyTo(target, zoom);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target]);
+
+  return null;
+}
+
 function DashboardMap({ pins }) {
-  const [visible, setVisible] = useState({ planned: true, hiked: true, public: true, unesco: true });
+  const [visible, setVisible] = useState({ planned: true, hiked: true, public: true, unesco: true, makan: true });
+  const [makanQuery, setMakanQuery] = useState('');
+  const [flyTarget, setFlyTarget] = useState(null);
 
   const toggleCategory = (key) => {
     setVisible((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -62,8 +84,50 @@ function DashboardMap({ pins }) {
 
   const visiblePins = pins.filter((pin) => visible[pinCategory(pin)]);
 
+  const trimmedQuery = makanQuery.trim().toLowerCase();
+  const makanMatches = trimmedQuery
+    ? makanSpots.filter(
+        (spot) =>
+          spot.name.toLowerCase().includes(trimmedQuery) ||
+          spot.location.toLowerCase().includes(trimmedQuery) ||
+          spot.specialty.toLowerCase().includes(trimmedQuery)
+      )
+    : [];
+
+  const handleSelectMakanMatch = (spot) => {
+    setVisible((prev) => ({ ...prev, makan: true }));
+    setFlyTarget([spot.lat, spot.lng]);
+    setMakanQuery(spot.name);
+  };
+
   return (
     <div className="dashboard-map">
+      <div className="dashboard-map-search">
+        <input
+          type="text"
+          value={makanQuery}
+          onChange={(e) => setMakanQuery(e.target.value)}
+          placeholder="Search makan spots (e.g. laksa, Penang)..."
+          className="dashboard-map-search-input"
+        />
+        {makanMatches.length > 0 && (
+          <ul className="dashboard-map-search-results">
+            {makanMatches.map((spot) => (
+              <li key={spot.id}>
+                <button type="button" onClick={() => handleSelectMakanMatch(spot)}>
+                  <strong>{spot.name}</strong> — {spot.location}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {trimmedQuery && makanMatches.length === 0 && (
+          <ul className="dashboard-map-search-results">
+            <li className="dashboard-map-search-empty">No makan spots found</li>
+          </ul>
+        )}
+      </div>
+
       <div className="dashboard-map-legend">
         {LEGEND_ITEMS.map((item) => (
           <button
@@ -120,6 +184,19 @@ function DashboardMap({ pins }) {
             </Popup>
           </Marker>
         ))}
+        {visible.makan && makanSpots.map((spot) => (
+          <Marker key={spot.id} position={[spot.lat, spot.lng]} icon={MAKAN_ICON}>
+            <Popup>
+              <div className="dashboard-map-popup">
+                <h4>{spot.name}</h4>
+                <p className="mountain-name">{spot.location}</p>
+                <p><strong>Specialty:</strong> {spot.specialty}</p>
+                <p>{spot.description}</p>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+        <FlyToLocation target={flyTarget} zoom={13} />
       </MapContainer>
     </div>
   );
