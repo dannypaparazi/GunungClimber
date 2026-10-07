@@ -134,7 +134,15 @@ function HikesTab({ itineraries, loading, pins, invites, onDelete, onTogglePubli
   );
 }
 
+const FRIEND_TYPE_LABELS = {
+  hike: 'Hike Friend',
+  makan: 'Makan Friend',
+};
+
 function FriendsTab({ friends, requests, users, onSendRequest, onAccept, onRemove }) {
+  const hikeFriends = friends.filter((f) => f.friend_type !== 'makan');
+  const makanFriends = friends.filter((f) => f.friend_type === 'makan');
+
   return (
     <div className="friends-layout">
       {requests.length > 0 && (
@@ -143,7 +151,12 @@ function FriendsTab({ friends, requests, users, onSendRequest, onAccept, onRemov
           <ul className="friends-list">
             {requests.map((req) => (
               <li key={req.friendship_id}>
-                <span>{req.full_name || req.username}</span>
+                <span>
+                  {req.full_name || req.username}
+                  <span className={`friend-type-badge friend-type-${req.friend_type}`}>
+                    {FRIEND_TYPE_LABELS[req.friend_type]}
+                  </span>
+                </span>
                 <div className="friends-list-actions">
                   <button className="btn-secondary" onClick={() => onAccept(req.friendship_id)}>Accept</button>
                   <button className="btn-danger" onClick={() => onRemove(req.friendship_id)}>Decline</button>
@@ -155,12 +168,30 @@ function FriendsTab({ friends, requests, users, onSendRequest, onAccept, onRemov
       )}
 
       <div className="friends-section">
-        <h3>My Friends</h3>
-        {friends.length === 0 ? (
-          <div className="empty-state"><p>No friends yet. Add some below!</p></div>
+        <h3>Hike Friends</h3>
+        {hikeFriends.length === 0 ? (
+          <div className="empty-state"><p>No hike friends yet. Add some below!</p></div>
         ) : (
           <ul className="friends-list">
-            {friends.map((friend) => (
+            {hikeFriends.map((friend) => (
+              <li key={friend.friendship_id}>
+                <span>{friend.full_name || friend.username}</span>
+                <div className="friends-list-actions">
+                  <button className="btn-danger" onClick={() => onRemove(friend.friendship_id)}>Remove</button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="friends-section">
+        <h3>Makan Friends</h3>
+        {makanFriends.length === 0 ? (
+          <div className="empty-state"><p>No makan friends yet. Add some below!</p></div>
+        ) : (
+          <ul className="friends-list">
+            {makanFriends.map((friend) => (
               <li key={friend.friendship_id}>
                 <span>{friend.full_name || friend.username}</span>
                 <div className="friends-list-actions">
@@ -180,7 +211,10 @@ function FriendsTab({ friends, requests, users, onSendRequest, onAccept, onRemov
               <span>{user.full_name || user.username}</span>
               <div className="friends-list-actions">
                 {user.relationship === 'none' && (
-                  <button className="btn-secondary" onClick={() => onSendRequest(user.id)}>Add Friend</button>
+                  <>
+                    <button className="btn-secondary" onClick={() => onSendRequest(user.id, 'hike')}>Add as Hike Friend</button>
+                    <button className="btn-secondary" onClick={() => onSendRequest(user.id, 'makan')}>Add as Makan Friend</button>
+                  </>
                 )}
                 {user.relationship === 'pending_sent' && <span className="friend-status">Request sent</span>}
                 {user.relationship === 'pending_received' && (
@@ -388,9 +422,9 @@ function UserDashboard({ onLogout }) {
     }
   };
 
-  const handleSendRequest = async (userId) => {
+  const handleSendRequest = async (userId, friendType) => {
     try {
-      await sendFriendRequest(uid, userId);
+      await sendFriendRequest(uid, userId, friendType);
       refreshFriendData();
     } catch (err) {
       console.error('Failed to send friend request', err);
