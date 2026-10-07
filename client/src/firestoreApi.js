@@ -125,6 +125,7 @@ export async function getMyFriends(uid) {
     id: profiles[i]?.id,
     username: profiles[i]?.username,
     full_name: profiles[i]?.full_name,
+    friend_type: f.friend_type || 'hike',
   }));
 }
 
@@ -141,7 +142,7 @@ export async function getUserDirectory(uid) {
     else if (friendship?.status === 'pending') {
       relationship = friendship.requester_id === uid ? 'pending_sent' : 'pending_received';
     }
-    return { ...u, friendship_id: friendship?.id, relationship };
+    return { ...u, friendship_id: friendship?.id, relationship, friend_type: friendship?.friend_type || 'hike' };
   });
 }
 
@@ -156,14 +157,16 @@ export async function getIncomingFriendRequests(uid) {
     id: profiles[i]?.id,
     username: profiles[i]?.username,
     full_name: profiles[i]?.full_name,
+    friend_type: f.friend_type || 'hike',
   }));
 }
 
-export async function sendFriendRequest(uid, friendUid) {
+export async function sendFriendRequest(uid, friendUid, friendType = 'hike') {
   await addDoc(collection(db, 'friendships'), {
     requester_id: uid,
     addressee_id: friendUid,
     status: 'pending',
+    friend_type: friendType,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   });
