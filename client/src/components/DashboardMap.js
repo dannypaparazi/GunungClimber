@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { Link } from 'react-router-dom';
 import L from 'leaflet';
@@ -28,7 +28,7 @@ const MAKAN_ICON = markerIcon('orange');
 
 const DEFAULT_CENTER = [4.2105, 101.9758]; // Roughly central Malaysia
 
-const makanSpots = Object.entries(makanSpotsByRegion).flatMap(([region, spots]) =>
+const staticMakanSpots = Object.entries(makanSpotsByRegion).flatMap(([region, spots]) =>
   spots.map((spot) => ({ ...spot, region }))
 );
 
@@ -73,10 +73,15 @@ function FlyToLocation({ target, zoom }) {
   return null;
 }
 
-function DashboardMap({ pins }) {
+function DashboardMap({ pins, userMakanSpots = [] }) {
   const [visible, setVisible] = useState({ planned: true, hiked: true, public: true, unesco: true, makan: true });
   const [makanQuery, setMakanQuery] = useState('');
   const [flyTarget, setFlyTarget] = useState(null);
+
+  const makanSpots = useMemo(
+    () => [...staticMakanSpots, ...userMakanSpots],
+    [userMakanSpots]
+  );
 
   const toggleCategory = (key) => {
     setVisible((prev) => ({ ...prev, [key]: !prev[key] }));

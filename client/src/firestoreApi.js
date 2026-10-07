@@ -235,3 +235,22 @@ export async function getMyInvites(uid) {
 export async function respondToInvite(inviteId, status) {
   await updateDoc(doc(db, 'itinerary_invites', inviteId), { status, updated_at: new Date().toISOString() });
 }
+
+// --- Makan spots (user-submitted, in addition to the curated list) ---
+
+export async function getUserMakanSpots() {
+  const snap = await getDocs(collection(db, 'makan_spots'));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function addMakanSpot(uid, spot) {
+  await addDoc(collection(db, 'makan_spots'), {
+    ...spot,
+    added_by: uid,
+    created_at: new Date().toISOString(),
+  });
+}
+
+export async function deleteMakanSpot(spotId) {
+  await deleteDoc(doc(db, 'makan_spots', spotId));
+}
