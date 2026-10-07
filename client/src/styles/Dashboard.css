@@ -392,3 +392,67 @@
   color: #555;
   margin: 4px 0;
 }
+
+.makan-card .btn-danger {
+  margin-top: 8px;
+}
+
+.makan-region-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #e65100;
+  background-color: #fff3e0;
+  border-radius: 10px;
+  vertical-align: middle;
+}
+
+.makan-add-section {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.makan-add-section .section-header {
+  margin-bottom: 0;
+}
+
+.makan-add-form {
+  margin-top: 20px;
+}
+
+.makan-add-form .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.makan-add-form .form-group {
+  margin-bottom: 20px;
+}
+
+.makan-add-form .form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.makan-add-form .form-group input,
+.makan-add-form .form-group textarea,
+.makan-add-form .form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.makan-add-form .form-group textarea {
+  min-height: 80px;
+  resize: vertical;
+}
