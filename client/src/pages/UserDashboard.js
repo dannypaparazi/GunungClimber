@@ -1,13 +1,27 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import { auth } from '../firebase';
+import {
+  getUserProfile,
+  getMyItineraries,
+  getMapPins,
+  getMyFriends,
+  getIncomingFriendRequests,
+  getUserDirectory,
+  getMyInvites,
+  respondToInvite,
+  deleteItinerary,
+  updateItinerary,
+  sendFriendRequest,
+  acceptFriendship,
+  removeFriendship,
+} from '../firestoreApi';
 import DashboardMap from '../components/DashboardMap';
 import StarRating from '../components/StarRating';
+import makanSpots from '../data/makanSpots';
 import '../styles/Dashboard.css';
-
-const API_BASE = 'http://localhost:5001/api';
 
 function parseDateOnly(dateStr) {
   const [y, m, d] = dateStr.split('-').map(Number);
@@ -232,6 +246,28 @@ function CalendarTab({ itineraries }) {
   );
 }
 
+function MakanTab() {
+  return (
+    <div className="makan-layout">
+      {Object.entries(makanSpots).map(([region, spots]) => (
+        <div key={region} className="makan-region">
+          <h3>{region}</h3>
+          <div className="makan-grid">
+            {spots.map((spot) => (
+              <div key={spot.id} className="makan-card">
+                <h4>{spot.name}</h4>
+                <p className="makan-location">{spot.location}</p>
+                <p className="makan-specialty">{spot.specialty}</p>
+                <p>{spot.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function UserDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState('hikes');
   const [itineraries, setItineraries] = useState([]);
@@ -243,8 +279,7 @@ function UserDashboard({ onLogout }) {
   const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState(null);
   const navigate = useNavigate();
-  const token = localStorage.getItem('token');
-  const headers = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
+  const uid = auth.currentUser.uid;
 
   useEffect(() => {
     fetchUserProfile();
@@ -259,8 +294,7 @@ function UserDashboard({ onLogout }) {
 
   const fetchUserProfile = async () => {
     try {
-      const response = await axios.get(`${API_BASE}/user/profile`, { headers });
-      setUserInfo(response.data.user);
+      setUserInfo(await getUserProfile(uid));
     } catch (err) {
       console.error('Failed to load user profile', err);
     }
@@ -269,8 +303,7 @@ function UserDashboard({ onLogout }) {
   const fetchItineraries = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE}/itinerary`, { headers });
-      setItineraries(response.data.itineraries);
+      setItineraries(await getMyItineraries(uid));
     } catch (err) {
       console.error('Failed to load itineraries', err);
     } finally {
@@ -280,8 +313,7 @@ function UserDashboard({ onLogout }) {
 
   const fetchPins = async () => {
     try {
-      const response = await axios.get(`${API_BASE}/itinerary/map/pins`, { headers });
-      setPins(response.data.pins);
+      setPins(await getMapPins(uid));
     } catch (err) {
       console.error('Failed to load map pins', err);
     }
@@ -289,8 +321,7 @@ function UserDashboard({ onLogout }) {
 
   const fetchFriends = async () => {
     try {
-      const response = await axios.get(`${API_BASE}/friends`, { headers });
-      setFriends(response.data.friends);
+      setFriends(await getMyFriends(uid));
     } catch (err) {
       console.error('Failed to load friends', err);
     }
@@ -298,8 +329,7 @@ function UserDashboard({ onLogout }) {
 
   const fetchFriendRequests = async () => {
     try {
-      const response = await axios.get(`${API_BASE}/friends/requests`, { headers });
-      setFriendRequests(response.data.requests);
+      setFriendRequests(await getIncomingFriendRequests(uid));
     } catch (err) {
       console.error('Failed to load friend requests', err);
     }
@@ -307,8 +337,7 @@ function UserDashboard({ onLogout }) {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get(`${API_BASE}/friends/users`, { headers });
-      setUsers(response.data.users);
+      setUsers(await getUserDirectory(uid));
     } catch (err) {
       console.error('Failed to load users', err);
     }
@@ -316,8 +345,7 @@ function UserDashboard({ onLogout }) {
 
   const fetchInvites = async () => {
     try {
-      const response = await axios.get(`${API_BASE}/itinerary/invites/mine`, { headers });
-      setInvites(response.data.invites);
+      setInvites(await getMyInvites(uid));
     } catch (err) {
       console.error('Failed to load invites', err);
     }
@@ -325,7 +353,7 @@ function UserDashboard({ onLogout }) {
 
   const handleRespondInvite = async (inviteId, status) => {
     try {
-      await axios.put(`${API_BASE}/itinerary/invites/${inviteId}`, { status }, { headers });
+      await respondToInvite(inviteId, status);
       fetchInvites();
     } catch (err) {
       console.error('Failed to update invite response', err);
@@ -341,7 +369,7 @@ function UserDashboard({ onLogout }) {
   const handleDeleteItinerary = async (id) => {
     if (window.confirm('Are you sure you want to delete this itinerary?')) {
       try {
-        await axios.delete(`${API_BASE}/itinerary/${id}`, { headers });
+        await deleteItinerary(id);
         fetchItineraries();
         fetchPins();
       } catch (err) {
@@ -352,7 +380,7 @@ function UserDashboard({ onLogout }) {
 
   const handleTogglePublic = async (itinerary) => {
     try {
-      await axios.put(`${API_BASE}/itinerary/${itinerary.id}`, { ...itinerary, is_public: !itinerary.is_public }, { headers });
+      await updateItinerary(itinerary.id, { ...itinerary, is_public: !itinerary.is_public });
       fetchItineraries();
       fetchPins();
     } catch (err) {
@@ -362,7 +390,7 @@ function UserDashboard({ onLogout }) {
 
   const handleSendRequest = async (userId) => {
     try {
-      await axios.post(`${API_BASE}/friends/request`, { addressee_id: userId }, { headers });
+      await sendFriendRequest(uid, userId);
       refreshFriendData();
     } catch (err) {
       console.error('Failed to send friend request', err);
@@ -371,7 +399,7 @@ function UserDashboard({ onLogout }) {
 
   const handleAcceptRequest = async (friendshipId) => {
     try {
-      await axios.post(`${API_BASE}/friends/${friendshipId}/accept`, {}, { headers });
+      await acceptFriendship(friendshipId);
       refreshFriendData();
     } catch (err) {
       console.error('Failed to accept friend request', err);
@@ -380,7 +408,7 @@ function UserDashboard({ onLogout }) {
 
   const handleRemoveFriendship = async (friendshipId) => {
     try {
-      await axios.delete(`${API_BASE}/friends/${friendshipId}`, { headers });
+      await removeFriendship(friendshipId);
       refreshFriendData();
     } catch (err) {
       console.error('Failed to remove friendship', err);
@@ -417,6 +445,12 @@ function UserDashboard({ onLogout }) {
         >
           Calendar
         </button>
+        <button
+          className={`dashboard-tab ${activeTab === 'makan' ? 'active' : ''}`}
+          onClick={() => setActiveTab('makan')}
+        >
+          Makan
+        </button>
       </div>
 
       <div className="dashboard-content">
@@ -443,6 +477,7 @@ function UserDashboard({ onLogout }) {
             />
           )}
           {activeTab === 'calendar' && <CalendarTab itineraries={itineraries} />}
+          {activeTab === 'makan' && <MakanTab />}
         </div>
       </div>
     </div>

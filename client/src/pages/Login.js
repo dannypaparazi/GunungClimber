@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { auth, db } from '../firebase';
 import '../styles/Auth.css';
 
 function Login({ onLogin }) {
@@ -16,15 +18,21 @@ function Login({ onLogin }) {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5001/api/auth/login', {
-        username,
-        password,
-      });
+      const usernameQuery = query(collection(db, 'users'), where('username', '==', username));
+      const matches = await getDocs(usernameQuery);
+      if (matches.empty) {
+        setError('Invalid username or password');
+        setLoading(false);
+        return;
+      }
 
-      onLogin(response.data.token, response.data.user.role);
-      navigate(response.data.user.role === 'admin' ? '/admin' : '/dashboard');
+      const userDoc = matches.docs[0].data();
+      await signInWithEmailAndPassword(auth, userDoc.email, password);
+
+      onLogin(userDoc.role);
+      navigate(userDoc.role === 'admin' ? '/admin' : '/dashboard');
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed');
+      setError(firebaseErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -71,11 +79,21 @@ function Login({ onLogin }) {
           <p>
             Don't have an account? <Link to="/register">Register here</Link>
           </p>
-          <p className="demo-hint">Demo: username: admin, password: admin123</p>
         </div>
       </div>
     </div>
   );
+}
+
+function firebaseErrorMessage(err) {
+  switch (err.code) {
+    case 'auth/invalid-credential':
+    case 'auth/wrong-password':
+    case 'auth/user-not-found':
+      return 'Invalid username or password';
+    default:
+      return err.message || 'Login failed';
+  }
 }
 
 export default Login;

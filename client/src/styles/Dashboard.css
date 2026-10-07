@@ -327,3 +327,50 @@
   border-radius: 4px;
   cursor: pointer;
 }
+
+.makan-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.makan-region h3 {
+  margin: 0 0 15px 0;
+  color: #2196F3;
+}
+
+.makan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.makan-card {
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.makan-card h4 {
+  margin: 0 0 6px 0;
+  color: #4CAF50;
+}
+
+.makan-location {
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 8px;
+}
+
+.makan-specialty {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.makan-card p {
+  font-size: 14px;
+  color: #555;
+  margin: 4px 0;
+}

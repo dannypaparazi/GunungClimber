@@ -1,0 +1,56 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isSelf(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // User profiles: public read (no passwords stored here — Firebase Auth owns
+    // those separately), needed for the pre-signup username-uniqueness check and
+    // the friend directory. Only the user themselves can create their own doc,
+    // admins can manage roles.
+    match /users/{uid} {
+      allow read: if true;
+      allow create: if isSelf(uid) && request.resource.data.role == 'user';
+      // Self-updates may not change their own role (no self-promotion to admin);
+      // admins can change anything, including other users' roles.
+      allow update: if isAdmin() ||
+        (isSelf(uid) && request.resource.data.role == resource.data.role);
+      allow delete: if isAdmin();
+    }
+
+    // Itineraries: owner has full control; others can read only if public.
+    match /itineraries/{itineraryId} {
+      allow read: if isSignedIn() &&
+        (resource.data.user_id == request.auth.uid || resource.data.is_public == true || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.user_id == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.user_id == request.auth.uid;
+    }
+
+    // Friendships: either party can read/remove; only the addressee can accept (update).
+    match /friendships/{friendshipId} {
+      allow read: if isSignedIn() &&
+        (resource.data.requester_id == request.auth.uid || resource.data.addressee_id == request.auth.uid);
+      allow create: if isSignedIn() && request.resource.data.requester_id == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.addressee_id == request.auth.uid;
+      allow delete: if isSignedIn() &&
+        (resource.data.requester_id == request.auth.uid || resource.data.addressee_id == request.auth.uid);
+    }
+
+    // Itinerary invites: owner invites, invitee sets their own RSVP status.
+    match /itinerary_invites/{inviteId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && resource.data.invitee_id == request.auth.uid;
+      allow delete: if isSignedIn();
+    }
+  }
+}
