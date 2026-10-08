@@ -299,6 +299,33 @@ function MakanTab({ userSpots, currentUid, onAddSpot, onDeleteSpot }) {
   });
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [sharedSpotId, setSharedSpotId] = useState(null);
+
+  const handleShare = async (spot) => {
+    const mapsLink = spot.lat != null && spot.lng != null
+      ? `https://www.google.com/maps?q=${spot.lat},${spot.lng}`
+      : '';
+    const text = [`${spot.name} — ${spot.location}`, spot.specialty, mapsLink]
+      .filter(Boolean)
+      .join('\n');
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: spot.name, text });
+      } catch (err) {
+        // User cancelled the share sheet; nothing to do.
+      }
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setSharedSpotId(spot.id);
+      setTimeout(() => setSharedSpotId((current) => (current === spot.id ? null : current)), 2000);
+    } catch (err) {
+      console.error('Failed to copy share text', err);
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -439,6 +466,9 @@ function MakanTab({ userSpots, currentUid, onAddSpot, onDeleteSpot }) {
                 <p className="makan-location">{spot.location}</p>
                 <p className="makan-specialty">{spot.specialty}</p>
                 <p>{spot.description}</p>
+                <button type="button" className="btn-secondary makan-share-btn" onClick={() => handleShare(spot)}>
+                  {sharedSpotId === spot.id ? 'Copied!' : 'Share'}
+                </button>
               </div>
             ))}
           </div>
@@ -455,11 +485,16 @@ function MakanTab({ userSpots, currentUid, onAddSpot, onDeleteSpot }) {
                 <p className="makan-location">{spot.location}</p>
                 <p className="makan-specialty">{spot.specialty}</p>
                 <p>{spot.description}</p>
-                {spot.added_by === currentUid && (
-                  <button type="button" className="btn-danger" onClick={() => onDeleteSpot(spot.id)}>
-                    Delete
+                <div className="makan-card-actions">
+                  <button type="button" className="btn-secondary makan-share-btn" onClick={() => handleShare(spot)}>
+                    {sharedSpotId === spot.id ? 'Copied!' : 'Share'}
                   </button>
-                )}
+                  {spot.added_by === currentUid && (
+                    <button type="button" className="btn-danger" onClick={() => onDeleteSpot(spot.id)}>
+                      Delete
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
