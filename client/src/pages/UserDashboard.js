@@ -25,6 +25,7 @@ import DashboardMap from '../components/DashboardMap';
 import MapPicker from '../components/MapPicker';
 import StarRating from '../components/StarRating';
 import makanSpots from '../data/makanSpots';
+import { shareMakanSpot } from '../utils/shareMakanSpot';
 import '../styles/Dashboard.css';
 
 const MAKAN_REGIONS = ['Peninsular Malaysia', 'Sabah', 'Sarawak', 'Singapore'];
@@ -302,28 +303,14 @@ function MakanTab({ userSpots, currentUid, onAddSpot, onDeleteSpot }) {
   const [sharedSpotId, setSharedSpotId] = useState(null);
 
   const handleShare = async (spot) => {
-    const mapsLink = spot.lat != null && spot.lng != null
-      ? `https://www.google.com/maps?q=${spot.lat},${spot.lng}`
-      : '';
-    const text = [`${spot.name} — ${spot.location}`, spot.specialty, mapsLink]
-      .filter(Boolean)
-      .join('\n');
-
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: spot.name, text });
-      } catch (err) {
-        // User cancelled the share sheet; nothing to do.
-      }
-      return;
-    }
-
     try {
-      await navigator.clipboard.writeText(text);
-      setSharedSpotId(spot.id);
-      setTimeout(() => setSharedSpotId((current) => (current === spot.id ? null : current)), 2000);
+      const copied = await shareMakanSpot(spot);
+      if (copied) {
+        setSharedSpotId(spot.id);
+        setTimeout(() => setSharedSpotId((current) => (current === spot.id ? null : current)), 2000);
+      }
     } catch (err) {
-      console.error('Failed to copy share text', err);
+      console.error('Failed to share makan spot', err);
     }
   };
 

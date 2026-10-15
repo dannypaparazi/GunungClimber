@@ -7,6 +7,7 @@ import 'leaflet/dist/leaflet.css';
 import StarRating from './StarRating';
 import unescoSites from '../data/unescoSites';
 import makanSpotsByRegion from '../data/makanSpots';
+import { shareMakanSpot } from '../utils/shareMakanSpot';
 import '../styles/DashboardMap.css';
 
 function markerIcon(color) {
@@ -77,6 +78,7 @@ function DashboardMap({ pins, userMakanSpots = [] }) {
   const [visible, setVisible] = useState({ planned: true, hiked: true, public: true, unesco: true, makan: true });
   const [makanQuery, setMakanQuery] = useState('');
   const [flyTarget, setFlyTarget] = useState(null);
+  const [sharedSpotId, setSharedSpotId] = useState(null);
 
   const makanSpots = useMemo(
     () => [...staticMakanSpots, ...userMakanSpots],
@@ -85,6 +87,18 @@ function DashboardMap({ pins, userMakanSpots = [] }) {
 
   const toggleCategory = (key) => {
     setVisible((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleShareMakanSpot = async (spot) => {
+    try {
+      const copied = await shareMakanSpot(spot);
+      if (copied) {
+        setSharedSpotId(spot.id);
+        setTimeout(() => setSharedSpotId((current) => (current === spot.id ? null : current)), 2000);
+      }
+    } catch (err) {
+      console.error('Failed to share makan spot', err);
+    }
   };
 
   const visiblePins = pins.filter((pin) => visible[pinCategory(pin)]);
@@ -197,6 +211,9 @@ function DashboardMap({ pins, userMakanSpots = [] }) {
                 <p className="mountain-name">{spot.location}</p>
                 <p><strong>Specialty:</strong> {spot.specialty}</p>
                 <p>{spot.description}</p>
+                <button type="button" className="btn-secondary" onClick={() => handleShareMakanSpot(spot)}>
+                  {sharedSpotId === spot.id ? 'Copied!' : 'Share'}
+                </button>
               </div>
             </Popup>
           </Marker>
